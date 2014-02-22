@@ -1,4 +1,3 @@
-
 #pynvd3: A Python wrapper for NVD3.js
 
 [NVD3.js](http://nvd3.org/) is a charting library built on top of the javascript library [D3.js](http://d3js.org/). *pynvd3* allows you to produce the javascript required to display charts using only Python.
@@ -46,4 +45,3 @@ The list of values in the index of a `DataFrame` (or `Series`) always becomes th
 This also goes for indexes that are of type `DatetimeIndex` i.e. time series data:
 
 It is also possible to just directly feed in a `DataFrame`:
-
