@@ -3,6 +3,7 @@ import unittest
 import numpy as np
 import pandas as pd
 
+from .base import Axis
 from .utils import teardown, teardown_series, teardown_frame, teardown_index
 
 
@@ -32,6 +33,44 @@ from .utils import teardown, teardown_series, teardown_frame, teardown_index
 
 #         chart.add_series(data)
 #         self.assertEqual(chart.series['Series2'], data)
+
+
+class TestAxis(unittest.TestCase):
+
+    def test_valid_axes_names(self):
+        """
+        Are axes named 'xAxis', 'y1Axis', 'y2Axis'?
+        """
+
+        for name in ('xaxis', 'xaxis1', 'not_an_axis', 'y3Axis'):
+            self.assertRaises(AssertionError, Axis, name='xaxis')
+
+    def test_axis_show_max_min(self):
+        axis = Axis('xAxis', show_max_min=False)
+        result = axis.to_dict()['showMaxMin']
+        self.assertEqual(result, 'false')
+
+        axis = Axis('xAxis', show_max_min=True)
+        self.assertTrue('showMaxMin' not in result)
+
+    def test_axis_labels(self):
+        axis = Axis('xAxis', stagger_labels=True, rotate_labels=-15)
+        result = axis.to_dict()
+
+        self.assertEqual(result['staggerLabels'], 'true')
+        self.assertEqual(result['rotateLabels'], -15)
+
+    def test_tick_format_is_date(self):
+        """
+        Is tick format properly recognized as a time format?
+        """
+        axis = Axis('xAxis')
+
+        for char in 'aAbBcdeHIjmMLpSUwWxXyYZ':
+            self.assertTrue(axis._check_tick_format_is_date('%%%s' % char))
+
+        for format in (',.0f', '04d', '.0%', '%z'):
+            self.assertFalse(axis._check_tick_format_is_date(format))
 
 
 class TestUtilsTearDowns(unittest.TestCase):

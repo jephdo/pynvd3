@@ -8,6 +8,7 @@
 """
 
 import abc
+import re
 
 try:
     import ujson as json
@@ -41,7 +42,7 @@ class AbstractNvd3Chart(object):
         self.element_id = element_id
 
         self.series = {}
-        self.axes = {}
+        self.axes = []
         self.javascript = []
 
     # def write(self, value, indent=0):
@@ -49,7 +50,8 @@ class AbstractNvd3Chart(object):
 
     @abc.abstractmethod
     def add_axis(self, *args, **kwargs):
-        pass
+        axis = Axis(*name, **kwargs)
+        self.axes.append(axis)
 
     @abc.abstractmethod
     def add_series(self, data, name=None, **kwargs):
@@ -66,6 +68,12 @@ class AbstractNvd3Chart(object):
         script.append("\t\tvar chart = nv.models.%s();" % self._model)
 
         # allow hooks here
+
+        for axis in self.axes:
+            script.append('\t\tchart.%s' % axis.name)
+
+            for attribute, value in axis.to_dict().items():
+                script.append('\t\t\t.%s(%s)' % (attribute, value))
 
         script.append("\n\t\td3.select('#%s svg')" % self.element_id)
         script.append("\t\t.datum(data)")
@@ -86,7 +94,65 @@ class AbstractNvd3Chart(object):
 
 
 class Axis(object):
-    _tick_format = 
-    _
-    def __init__(self, )
 
+    def __init__(self, name, label=None, stagger_labels=False, rotate_labels=0,
+        show_max_min=True, tick_format=None):
+        self.name = name
+        assert re.match('[xy][0-2]?Axis', name), \
+            "Axis name must be one of 'xAxis', 'x1Axis', 'x2Axis', 'yAxis', 'y1Axis', 'y2Axis': %s" % name
+        
+        self.label = label
+        self.stagger_labels = stagger_labels
+        self.rotate_labels = rotate_labels
+        self.show_max_min = show_max_min
+        self.tick_format = tick_format
+
+    def to_dict(self):
+        """
+
+        """
+
+        axis = {}
+
+        if not self.show_max_min:
+            axis['showMaxMin'] = 'false'
+
+        if self.label is not None:
+            axis['axisLabel'] = self.label
+
+        if self.stagger_labels:
+            axis['staggerLabels'] = 'true'
+
+        if self.rotate_labels:
+            axis['rotateLabels'] = self.rotate_labels
+
+        if self.tick_format:
+            is_date = self._check_tick_format_is_date(self.tick_format)
+            
+            format = []
+            if is_date:
+                format.append("function(d) {")
+                format.append("d3.time.format(%s)(new Date(d))}" % self.tick_format)
+            else:
+                format.append("d3.format(%s)" % self.tick_format)
+
+            axis['tickFormat'] = ''.join(format)
+
+        return axis
+
+    def to_json(self):
+        return json.dumps(self.to_dict())
+
+    @staticmethod
+    def _check_tick_format_is_date(tick_format):
+        """
+
+        """
+
+        # when creating a time format specifier in d3, 
+        # there are a defined set of directives e.g. %a, %H, %Z, etc.
+        # See: https://github.com/mbostock/d3/wiki/Time-Formatting
+        directives = 'aAbBcdeHIjmMLpSUwWxXyYZ'
+        pattern = '%%[%s]' % directives
+        
+        return bool(re.match(pattern, tick_format))
