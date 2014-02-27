@@ -2,14 +2,9 @@
 
 """
 
-try:
-    import pandas as pd
-except ImportError:
-    pass
-    # PANDAS_INSTALLED = False
-else:
-    # PANDAS_INSTALLED = True
+from . import PANDAS_INSTALLED
 
+if PANDAS_INSTALLED:
     from pandas import Series, DataFrame
     from pandas.core.index import MultiIndex
     from pandas.tseries.index import DatetimeIndex
@@ -22,9 +17,9 @@ def teardown(data):
     """
 
     if isinstance(data, Series):
-        return series_to_json(data)
+        return teardown_series(data)
     if isinstance(frame, DataFrame):
-        return frame_to_json(data)
+        return teardown_frame(data)
 
     raise TypeError('Data not recognized as DataFrame or Series: %s' % type(data))
 
@@ -43,7 +38,8 @@ def teardown_series(series):
 
     return {
         'name': series.name,
-        'values': values
+        'x': x_values,
+        'y': y_values
     }
 
 def teardown_frame(dataframe):

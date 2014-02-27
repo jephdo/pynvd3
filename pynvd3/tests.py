@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from .base import Axis
+from .base import Axis, Series
 from .utils import teardown, teardown_series, teardown_frame, teardown_index
 
 
@@ -73,6 +73,23 @@ class TestAxis(unittest.TestCase):
             self.assertFalse(axis._check_tick_format_is_date(format))
 
 
+class TestSeries(unittest.TestCase):
+
+    def test_empty_series(self):
+        series = Series('Series1')
+
+        self.assertEqual(series.x, [])
+        self.assertEqual(series.y, [])
+
+    def test_series_to_dict(self):
+        x, y = [0,1], [1,2]
+        series = Series('Series1', x, y)
+        result = series.to_dict()
+
+        self.assertEqual(result['key'], 'Series1')
+        self.assertEqual(result['values'], [{'x': 0, 'y': 1}, {'x': 1, 'y':2}])
+
+
 class TestUtilsTearDowns(unittest.TestCase):
 
     def test_index_converts_x_values(self):
@@ -123,11 +140,13 @@ class TestUtilsTearDowns(unittest.TestCase):
         Are Series broken down into dicts?
         """
 
-        data = pd.Series(list(range(2)))
-        result = teardown_series(data)
+        data = list(range(2))
+        series = pd.Series(data)
+        result = teardown_series(series)
         expected = {
             'name': None,
-            'values': [{'x': i, 'y': i }for i in range(2)]
+            'x': data,
+            'y': data
         }
 
         self.assertEqual(result, expected)
@@ -139,7 +158,8 @@ class TestUtilsTearDowns(unittest.TestCase):
 
         data = pd.Series()
         result = teardown_series(data)
-        self.assertEqual(result['values'], [])
+        self.assertEqual(result['x'], [])
+        self.assertEqual(result['y'], result['x'])
 
     def test_series_with_nan_and_infinite(self):
         """
@@ -150,7 +170,8 @@ class TestUtilsTearDowns(unittest.TestCase):
         result = teardown_series(data)
         expected = {
             'name': None,
-            'values': [{'x': 0, 'y': 1}]
+            'x': [0,],
+            'y': [1,]
         }
 
         self.assertEqual(result, expected)
@@ -159,8 +180,8 @@ class TestUtilsTearDowns(unittest.TestCase):
         data = pd.DataFrame([(1,2), (0,3)], columns=['a','b'])
         result = teardown_frame(data)
         expected = [
-            {'name': 'a', 'values': [{'x': 0, 'y': 1}, {'x': 1, 'y': 0}]},
-            {'name': 'b', 'values': [{'x': 0, 'y': 2}, {'x': 1, 'y': 3}]},
+            {'name': 'a', 'x': [0,1], 'y': [1,0]},
+            {'name': 'b', 'x':[0,1], 'y':[2,3]}
         ]
 
         self.assertEqual(result, expected)
