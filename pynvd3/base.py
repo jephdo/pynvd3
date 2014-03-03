@@ -1,5 +1,5 @@
 """
-    nvd3.base
+    pynvd3.base
     ~~~~~~~~~~~
 
     Base classes and objects for constructing charts. Each chart type should 
@@ -70,11 +70,8 @@ class AbstractNvd3Chart(object):
 
         # allow hooks here
 
-        for axis in self.axes.values():
-            script.append('\t\tchart.%s' % axis.name)
+        self._write_axis(script)
 
-            for attribute, value in axis.to_dict().items():
-                script.append('\t\t\t.%s(%s)' % (attribute, value))
 
         script.append("\n\t\td3.select('#%s svg')" % self.chart_id)
         script.append("\t\t  .datum(data)")
@@ -88,6 +85,13 @@ class AbstractNvd3Chart(object):
         script.append("</script>")
 
         return '\n'.join(script)
+
+    def _write_axis(self, script):
+        for axis in self.axes.values():
+            script.append('\t\tchart.%s' % axis.name)
+
+            for attribute, value in axis.to_dict().items():
+                script.append('\t\t\t.%s(%s)' % (attribute, value))
 
     @property
     def html(self):

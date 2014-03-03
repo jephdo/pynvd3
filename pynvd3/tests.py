@@ -3,36 +3,108 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from .base import Axis, Series
+from .base import AbstractNvd3Chart, Axis, Series
 from .utils import teardown, teardown_series, teardown_frame, teardown_index
+from ._compat import integer_types
 
 
-# class TestAbstractNvd3Chart(unittest.TestCase):
-#     def setUp(self):
-#         class Nvd3Chart(TestAbstractNvd3Chart):
-#             def add_series(*args, **kwargs):
-#                 super().add_series(*args, **kwargs)
+class TestAbstractNvd3Chart(unittest.TestCase):
 
+    def setUp(self):
+        class Nvd3Chart(AbstractNvd3Chart):
+            _model = 'Nvd3Chart'
 
-#         self.chart = Nvd3Chart
+            def add_axis(self, *args, **kwargs):
+                super(Nvd3Chart, self).add_axis(*args, **kwargs)
 
-#     def test_write_method(self):
-#         chart = self.chart()
-#         self.chart.write('hello')
-#         self.chart.write('world', indent=2)
+            def add_series(self, *args, **kwargs):
+                super(Nvd3Chart, self).add_series(*args, **kwargs)
 
-#         expected = ['hello', '\t\tworld']
-#         self.assertEqual(expected, self.chart.javascript)
+        self.chart = Nvd3Chart
 
-#     def test_add_series(self):
-#         chart = self.chart()
-#         data = {'x': [1,2], 'y': [4.2, 5]}
-        
-#         chart.add_series(data, name='Stock Price')
-#         self.assertEqual(chart.series['Stock Price'], data)
+    def test_bare_javascript(self):
+        """
+        Test expected javascript for chart initialized with no data, series,
+        or axis.
+        """
+        chart = self.chart()
 
-#         chart.add_series(data)
-#         self.assertEqual(chart.series['Series2'], data)
+        result = chart.javascript
+        expected = """
+<script>
+    nv.addGraph(function() {
+        var data=[];
+        var chart = nv.models.Nvd3Chart();
+
+        d3.select('#chart svg')
+          .datum(data)
+          .call(chart);
+
+        nv.utils.windowResize(chart.update);
+
+        return chart;
+    });
+</script>
+        """
+
+    def test_model_must_be_defined(self):
+        """Is an error raised when `_model` isn't defined?"""
+
+        class Chart(AbstractNvd3Chart):
+
+            def add_axis(*args, **kwargs):
+                super(Chart, self).add_axis(*args, **kwargs)
+
+            def add_series(*args, **kwargs):
+                super(Chart, self).add_series(*args, **kwargs)
+
+        self.assertRaises(NotImplementedError, Chart)
+
+    def test_axis_writer(self):
+        chart = self.chart()
+        chart.add_axis('xAxis')
+
+        script = []
+        chart._write_axis(script)
+
+        # ignore tabs and newlines
+        script = [line.strip() for line in script]
+
+        # first line should give name of axis
+        self.assertEqual('chart.xAxis', script[0])
+
+        # check every attribute is written into script
+        for attribute, value in chart.axes['xAxis'].to_dict().items():
+            self.assertTrue('%s.%s' % (attribute, value) in script)
+
+    def test_add_axis_creates_axis(self):
+        chart = self.chart()
+        chart.add_axis('xAxis')
+
+        self.assertTrue('xAxis' in chart.axes)
+
+        for axis in chart.axes.values():
+            self.assertTrue(isinstance(axis, Axis))
+
+    def test_add_series_creates_series(self):
+        chart = self.chart()
+        chart.add_series()
+
+        for series in chart.series.values():
+            self.assertTrue(isinstance(series, Series))
+
+    def test_add_series_gives_default_name(self):
+        """
+        Do new series get named properly?
+        """
+        chart = self.chart()
+
+        chart.add_series()
+        chart.add_series('New Series')
+        chart.add_series()
+
+        for series in ('Series1', 'New Series', 'Series3'):
+            self.assertTrue(series in chart.series)
 
 
 class TestAxis(unittest.TestCase):
@@ -124,7 +196,7 @@ class TestUtilsTearDowns(unittest.TestCase):
         # all values should be integers not floats since it's supposed to be 
         # number of milliseconds after epoch
         for i in result:
-            self.assertTrue(isinstance(i, int))
+            self.assertTrue(isinstance(i, integer_types))
 
     def test_no_multiindexes(self):
         """
