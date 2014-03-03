@@ -1,5 +1,8 @@
 """
+    pynvd3.utils
+    ~~~~~~~~~~~
 
+    Functions for working with pandas DataFrames.
 """
 
 from . import PANDAS_INSTALLED
@@ -13,7 +16,11 @@ if PANDAS_INSTALLED:
 
 def teardown(data):
     """
-    
+    Return a dictionary from a DataFrame or Series. Dictionary is in the JSON
+    form needed for NVD3.
+
+    This function dispatches to :func:`teardown_series` 
+    and :func:`teardown_frame`
     """
 
     if isinstance(data, Series):
@@ -25,7 +32,7 @@ def teardown(data):
 
 def teardown_series(series):
     """
-
+    Return a dictionary from a pandas Series.
     """
 
     # remove any nan or inf values since these values cannot be 
@@ -44,7 +51,7 @@ def teardown_series(series):
 
 def teardown_frame(dataframe):
     """
-
+    Return a dictionary from a pandas DataFrame.
     """
 
     return [teardown_series(dataframe[col])for col in dataframe.columns]
