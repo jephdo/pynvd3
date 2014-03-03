@@ -13,7 +13,7 @@ if PANDAS_INSTALLED:
 
 def teardown(data):
     """
-
+    
     """
 
     if isinstance(data, Series):

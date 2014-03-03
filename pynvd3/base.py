@@ -41,13 +41,13 @@ class AbstractNvd3Chart(object):
             raise NotImplementedError('NVD3 model type not defined')
 
         self.chart_id = chart_id
-        self.series = []
-        self.axes = []
+        self.series = {}
+        self.axes = {}
 
     @abc.abstractmethod
     def add_axis(self, *args, **kwargs):
         axis = Axis(*args, **kwargs)
-        self.axes.append(axis)
+        self.axes[axis.name] = axis
 
     @abc.abstractmethod
     def add_series(self, name=None, x=None, y=None):
@@ -55,7 +55,7 @@ class AbstractNvd3Chart(object):
             name = "Series%s" % (len(self.series) + 1)
 
         series = Series(name, x, y)
-        self.series.append(series)
+        self.series[series.name] = series
 
     @property
     def javascript(self):
@@ -64,13 +64,13 @@ class AbstractNvd3Chart(object):
         script.append("<script>")
         script.append("\tnv.addGraph(function() {")
 
-        data = [series.to_dict() for series in self.series]
+        data = [series.to_dict() for series in self.series.values()]
         script.append("\t\tvar data=%s;" % json.dumps(data))
         script.append("\t\tvar chart = nv.models.%s();" % self._model)
 
         # allow hooks here
 
-        for axis in self.axes:
+        for axis in self.axes.values():
             script.append('\t\tchart.%s' % axis.name)
 
             for attribute, value in axis.to_dict().items():
@@ -96,7 +96,7 @@ class AbstractNvd3Chart(object):
     @classmethod
     def from_dataframe(cls, dataframe, *args, **kwargs):
         if not PANDAS_INSTALLED:
-            raise ImportError('Could not import pandas -- failed to create chart from DataFrame')
+            raise ImportError('Failed to create chart from DataFrame - cannot import pandas')
 
         cht = cls(*args, **kwargs)
 
@@ -123,10 +123,10 @@ class Axis(object):
 
     def __init__(self, name, label=None, stagger_labels=False, rotate_labels=0,
         show_max_min=True, tick_format=None):
-        self.name = name
         assert re.match('[xy][0-2]?Axis', name), \
             "Axis name must be one of 'xAxis', 'x1Axis', 'x2Axis', 'yAxis', 'y1Axis', 'y2Axis': %s" % name
         
+        self.name = name
         self.label = label
         self.stagger_labels = stagger_labels
         self.rotate_labels = rotate_labels
@@ -179,6 +179,9 @@ class Axis(object):
         
         return bool(re.match(pattern, tick_format))
 
+    def __str__(self):
+        return '<Axis: %s>\n%s' % (self.name, self.to_json())
+
 
 class Series(object):
 
@@ -199,3 +202,9 @@ class Series(object):
         series['values'] = [{'x': x, 'y': y} for x,y in zip(self.x, self.y)]
 
         return series
+
+    def to_json(self):
+        return json.dumps(self.to_dict())
+
+    def __str__(self):
+        return '<Series: %s>\n%s' % (self.name, self.to_json())

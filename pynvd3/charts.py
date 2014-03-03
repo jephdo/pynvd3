@@ -14,10 +14,10 @@ class LineChart(AbstractNvd3Chart):
     _model = 'lineChart'
 
     def add_axis(self, *args, **kwargs):
-        super().add_axis(*args, **kwargs)
+        super(LineChart, self).add_axis(*args, **kwargs)
 
     def add_series(self, *args, **kwargs):
-        super().add_series(*args, **kwargs)
+        super(LineChart, self).add_series(*args, **kwargs)
 
 
 class MultiBarChart(AbstractNvd3Chart):
