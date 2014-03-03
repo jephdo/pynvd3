@@ -25,7 +25,7 @@ def teardown(data):
 
     if isinstance(data, Series):
         return teardown_series(data)
-    if isinstance(frame, DataFrame):
+    if isinstance(data, DataFrame):
         return teardown_frame(data)
 
     raise TypeError('Data not recognized as DataFrame or Series: %s' % type(data))

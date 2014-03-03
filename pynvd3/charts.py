@@ -1,5 +1,5 @@
 """
-    nvd3.charts
+    pynvd3.charts
     ~~~~~~~~~~~
 
     Charts that can be produced with pynvd3. Vist the NVD3 
@@ -10,8 +10,7 @@
 from .base import AbstractNvd3Chart
 
 
-class LineChart(AbstractNvd3Chart):
-    _model = 'lineChart'
+class _Nvd3Chart(AbstractNvd3Chart):
 
     def add_axis(self, *args, **kwargs):
         super(LineChart, self).add_axis(*args, **kwargs)
@@ -20,18 +19,21 @@ class LineChart(AbstractNvd3Chart):
         super(LineChart, self).add_series(*args, **kwargs)
 
 
-class MultiBarChart(AbstractNvd3Chart):
+class LineChart(_Nvd3Chart):
+    _model = 'lineChart'
+
+
+class MultiBarChart(_Nvd3Chart):
     _model = 'multiBarChart'
 
 
-class DiscreteBarChart(AbstractNvd3Chart):
+class DiscreteBarChart(_Nvd3Chart):
     _model = 'discreteBarChart'
 
 
-class StackedAreaChart(AbstractNvd3Chart):
+class StackedAreaChart(_Nvd3Chart):
     _model = 'stackedAreaChart'
 
 
-class MultiBarHorizontalChart(AbstractNvd3Chart):
+class MultiBarHorizontalChart(_Nvd3Chart):
     _model = 'multiBarHorizontalChart'
-

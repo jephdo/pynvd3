@@ -103,8 +103,10 @@ class AbstractNvd3Chart(object):
             raise ImportError('Failed to create chart from DataFrame - cannot import pandas')
 
         cht = cls(*args, **kwargs)
-
         data = teardown(dataframe)
+
+        for series in data:
+            cht.add_series(**series)
 
         return cht
 
