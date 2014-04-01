@@ -197,6 +197,9 @@ class Series(object):
         if y is None:
             y = []
         
+        assert len(x) is len(y), 'Total number of x-values (%s) must match ' \
+            'total number of y-values (%s) in a Series.' % (len(x), len(y))
+
         self.name = name
         self.x = x
         self.y = y

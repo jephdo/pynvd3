@@ -13,10 +13,10 @@ from .base import AbstractNvd3Chart
 class _Nvd3Chart(AbstractNvd3Chart):
 
     def add_axis(self, *args, **kwargs):
-        super(LineChart, self).add_axis(*args, **kwargs)
+        super(_Nvd3Chart, self).add_axis(*args, **kwargs)
 
     def add_series(self, *args, **kwargs):
-        super(LineChart, self).add_series(*args, **kwargs)
+        super(_Nvd3Chart, self).add_series(*args, **kwargs)
 
 
 class LineChart(_Nvd3Chart):
